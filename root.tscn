@@ -1,0 +1,109 @@
+[gd_scene load_steps=9 format=2]
+
+[ext_resource path="res://ParallaxBackground.gd" type="Script" id=1]
+[ext_resource path="res://ParallaxBackground2.gd" type="Script" id=2]
+
+[sub_resource type="Shader" id=4]
+code = "shader_type canvas_item;
+
+void fragment() 
+{
+	/*
+		this simple shader draws the first half (0 - 0.5f) of x-axis white, the rest (0.5 - 1f) black
+		then it's left shifted by build-in-func TIME [in float TIME => Elapsed total time in seconds.]
+		to have a side-scrolling effect. 1 Cycle should be 10 sec long! 
+		(shader-) TIME-flip-over is set in project-settings, so be shure it can handle 10sec!
+		10*60*60 => 36000ms :-) 
+	*/
+	
+	vec2 uv = SCREEN_UV;
+	// convert TIME to a relative 0..1 float value in a 10Hz-Base, and invert it
+	float shift_offset = 1f - float( abs(TIME * 0.1f) - trunc(abs(TIME *0.1f)) );
+	// quick 'n dirty make it white for the half if bigger then normal offset or bigger then out-of-viewport offset
+	float luma = ((uv.x >= shift_offset && uv.x <= shift_offset + 0.5f) || (uv.x >= shift_offset -1f && uv.x <= shift_offset -0.5f ))? 0f : 1f;
+	COLOR = vec4(luma,luma,luma,1f);
+}
+"
+
+[sub_resource type="ShaderMaterial" id=1]
+shader = SubResource( 4 )
+
+[sub_resource type="Gradient" id=2]
+colors = PoolColorArray( 1, 1, 1, 1, 0, 0, 0, 1 )
+
+[sub_resource type="GradientTexture" id=3]
+gradient = SubResource( 2 )
+width = 800
+
+[sub_resource type="Gradient" id=5]
+offsets = PoolRealArray( 0, 0.5, 0.5, 1 )
+colors = PoolColorArray( 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1 )
+
+[sub_resource type="GradientTexture" id=6]
+gradient = SubResource( 5 )
+width = 800
+
+[node name="root" type="Node2D"]
+
+[node name="shader" type="Sprite" parent="."]
+material = SubResource( 1 )
+position = Vector2( 400, 100 )
+scale = Vector2( 1, 200 )
+texture = SubResource( 3 )
+
+[node name="ParallaxBackground" type="ParallaxBackground" parent="."]
+script = ExtResource( 1 )
+
+[node name="ParallaxLayer" type="ParallaxLayer" parent="ParallaxBackground"]
+position = Vector2( 800, 0 )
+motion_mirroring = Vector2( 800, 0 )
+
+[node name="ParallaxSprite" type="Sprite" parent="ParallaxBackground/ParallaxLayer"]
+position = Vector2( 800, 300 )
+scale = Vector2( 1, 200 )
+texture = SubResource( 6 )
+offset = Vector2( -24, 0 )
+
+[node name="ParallaxBackground2" type="ParallaxBackground" parent="."]
+offset = Vector2( 0, 400 )
+transform = Transform2D( 1, 0, 0, 1, 0, 400 )
+script = ExtResource( 2 )
+
+[node name="ParallaxLayer" type="ParallaxLayer" parent="ParallaxBackground2"]
+position = Vector2( 800, 0 )
+motion_mirroring = Vector2( 800, 0 )
+
+[node name="ParallaxSprite" type="Sprite" parent="ParallaxBackground2/ParallaxLayer"]
+position = Vector2( 800, 100 )
+scale = Vector2( 1, 200 )
+texture = SubResource( 6 )
+offset = Vector2( -24, 0 )
+
+[node name="Label" type="Label" parent="."]
+margin_left = 350.0
+margin_right = 455.0
+margin_bottom = 200.0
+custom_colors/font_color = Color( 1, 0.498039, 0, 1 )
+text = "Shader rendered"
+align = 1
+valign = 1
+
+[node name="Label2" type="Label" parent="."]
+margin_left = 350.0
+margin_top = 200.0
+margin_right = 455.0
+margin_bottom = 400.0
+custom_colors/font_color = Color( 1, 0.498039, 0, 1 )
+text = "process"
+align = 1
+valign = 1
+
+[node name="Label3" type="Label" parent="."]
+margin_left = 350.0
+margin_top = 400.0
+margin_right = 455.0
+margin_bottom = 600.0
+custom_colors/font_color = Color( 1, 0.498039, 0, 1 )
+text = "physics_process"
+align = 1
+valign = 1
